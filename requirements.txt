@@ -1,0 +1,9 @@
+python-telegram-bot==21.3
+youtube-transcript-api==0.6.1
+pytube==15.0.0
+openai==1.40.0
+matplotlib==3.8.4
+requests==2.32.3
+pydub==0.25.1
+whisper-openai==1.0.0
+tiktoken==0.7.0
