@@ -1,0 +1,15 @@
+# Ignorar entorno virtual
+venv/
+
+# Cache de Python
+__pycache__/
+*.pyc
+
+# Directorios de VSCode
+.vscode/
+
+# Archivos de compilación
+*.log
+
+# Entornos o paquetes que no deben subirse
+.env
