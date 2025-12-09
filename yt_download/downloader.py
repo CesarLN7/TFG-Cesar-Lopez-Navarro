@@ -4,7 +4,7 @@ import os
 import re
 from yt_dlp import YoutubeDL
 
-AUDIO_DIR = "data/audio"
+AUDIO_DIR = "data/audios"
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
 # Esta función extrae el ID del vídeo de una URL de YouTube
@@ -21,10 +21,14 @@ def extract_video_id(url: str) -> str:
             return m.group(1)
     raise ValueError("No se pudo extraer el ID del vídeo")
 
+# Esta función devuelve la ruta del audio dado el ID del vídeo
+def get_audio_path(video_id: str) -> str:
+    return f"{AUDIO_DIR}/{video_id}.mp3"
+
 #Esta función comprueba si el audio ya está descargado
 def is_audio_cached(video_id: str) -> str | None:
-    path = os.path.join(AUDIO_DIR, f"{video_id}.mp3")
-    return path if os.path.exists(path) else None
+    audio_path = get_audio_path(video_id)
+    return audio_path if os.path.exists(audio_path) else None
 
 # Esta función descarga solo el audio en formato MP3
 def download_audio(url: str) -> str:

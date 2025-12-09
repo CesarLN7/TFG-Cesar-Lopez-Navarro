@@ -7,22 +7,26 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
 from yt_download.downloader import extract_video_id, download_audio, is_audio_cached
+from yt_transcript.get_transcript import transcribe_audio
+
 
 # Cargar variables del .env
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not TOKEN:
-    raise RuntimeError("TELEGRAM_BOT_TOKEN no encontrado en .env")
+    raise RuntimeError("❌ ERROR: TELEGRAM_BOT_TOKEN no encontrado en .env")
 
 # -----------------------------------------
 # FUNCIONES DE MANEJO
 # -----------------------------------------
 
+# Comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "¡Hola! Envíame un enlace de YouTube y analizaré el vídeo."
     )
 
+# Comando /help
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Solo envíame un enlace de YouTube y me encargo del resto."
@@ -31,9 +35,71 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Detectar si el mensaje contiene un URL de YouTube
 YOUTUBE_REGEX = r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)([A-Za-z0-9_\-]{11})"
 
+# Comando /test
+async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Si el usuario no pasa ruta, usamos un archivo por defecto
+    if len(context.args) == 0:
+        audio_path = "data/audios/test_audio_1.mp3"
+    else:
+        audio_path = " ".join(context.args)
+
+    if not os.path.exists(audio_path):
+        await update.message.reply_text(f"❌ Archivo no encontrado:\n{audio_path}")
+        return
+
+    await update.message.reply_text(f"🎧 Usando archivo:\n{audio_path}")
+    await update.message.reply_text("📝 Transcribiendo el audio...")
+
+    try:
+        transcription = transcribe_audio('test_audio_1', audio_path)                                #(CUIDADO CON LOS ARGUMENTOS DE AQUÍ, SON DE PRUEBA!!!!!!)
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error transcribiendo audio:\n{e}")
+        return
+
+    await update.message.reply_text("✔ Audio transcrito con éxito.")
+
+    # ------------------------------------------
+    # Guardar transcripción en data/transcripts/
+    # ------------------------------------------
+    os.makedirs("data/transcripts", exist_ok=True)
+
+    base_name = os.path.basename(audio_path)
+    transcript_path = f"data/transcripts/{base_name}.txt"
+
+    with open(transcript_path, "w", encoding="utf-8") as f:
+        f.write(transcription)
+
+    # ------------------------------------------
+    # Enviar preview al usuario
+    # ------------------------------------------
+    preview = transcription[:1500] + ("..." if len(transcription) > 1500 else "")
+
+    await update.message.reply_text(
+        f"🗒️ **Preview de la transcripción:**\n\n{preview}",
+        parse_mode="Markdown"
+    )
+
+    await update.message.reply_text(
+        f"📁 Transcripción guardada en:\n{transcript_path}"
+    )
+
+# Manejar mensajes generales
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    url = update.message.text
+    #Como ahora vamos a usar un audio de prueba, se usará el path absoluto en /test. En el futuro, se usará la URL aquí (!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!)
+    # url = update.message.text
+    
+    '''
+    Cuando vuelva a descargar vídeos será:
+    
+    video_id = extract_video_id(url)
+
+    audio_path = download_audio(url)  # guardado como data/audios/<video_id>.mp3
+
+    transcription = transcribe_audio(video_id, audio_path)
+
+    
     
     # 1. Extraer ID
     try:
@@ -66,9 +132,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         await update.message.reply_text("✔ Audio descargado con éxito.")
-
-    # 4. Mostrar ruta interna (debug)
-    await update.message.reply_text(f"Ruta del audio utilizada:\n{audio_path}")
+        
+    '''
     
     # Aquí en el futuro llamaremos a:
     # 1. Descargar el vídeo.
@@ -80,15 +145,28 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # -----------------------------------------
 # LIMPIAR CACHÉ
 # -----------------------------------------
+
 def clean_cache():
-    """Elimina la carpeta cache/audio/ al cerrar el bot."""
-    cache_dir = "data/audio"
-    if os.path.exists(cache_dir):
+
+    audio_cache = "data/audios"
+    transcript_cache = "data/transcripts"
+
+    # Borrar audios
+    if os.path.exists(audio_cache):
         print("🧹 Borrando caché de audio…")
-        shutil.rmtree(cache_dir)
-        print("✔ Caché eliminada.")
+        shutil.rmtree(audio_cache)
+        print("✔ Caché de audio eliminada.")
     else:
-        print("No había caché que borrar.")
+        print("No había caché de audio.")
+
+    # Borrar transcripciones
+    if os.path.exists(transcript_cache):
+        print("🧹 Borrando caché de transcripciones…")
+        shutil.rmtree(transcript_cache)
+        print("✔ Caché de transcripciones eliminada.")
+    else:
+        print("No había caché de transcripciones.")
+
 
 # -----------------------------------------
 # FUNCIÓN PRINCIPAL PARA INICIAR EL BOT
@@ -102,6 +180,8 @@ def run_bot():
     # Comandos
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("test", test_command))
+
 
     # Mensajes generales
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
@@ -110,5 +190,6 @@ def run_bot():
     try:
         app.run_polling()
     finally:
+        print("Caché borrada. Ejecución finalizada. ¡Hasta pronto!")
         clean_cache()  
 
