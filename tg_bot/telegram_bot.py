@@ -52,7 +52,7 @@ async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("📝 Transcribiendo el audio...")
 
     try:
-        transcription = transcribe_audio('test_audio_1', audio_path)                                #(CUIDADO CON LOS ARGUMENTOS DE AQUÍ, SON DE PRUEBA!!!!!!)
+        transcription = transcribe_audio('test_audio_1.mp3', audio_path)                                #(CUIDADO CON LOS ARGUMENTOS DE AQUÍ, SON DE PRUEBA!!!!!!)
     except Exception as e:
         await update.message.reply_text(f"❌ Error transcribiendo audio:\n{e}")
         return

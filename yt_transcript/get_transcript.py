@@ -1,17 +1,16 @@
-# Este archivo contiene la función para transcribir los audios de los vídeos a analizar usando Whisper (API OpenAI).
+# Este archivo contiene la función para transcribir los audios de los vídeos a analizar usando Whisper en local. Se necesita tener instalado FFmpeg.
 
 import os
-from dotenv import load_dotenv
-from openai import OpenAI
+import whisper
 
-# Cargar variables del entorno (.env)
-load_dotenv()
+os.environ["PATH"] += os.pathsep + r"C:\Users\César\OneDrive - Universidad Carlos III de Madrid\Documentos\ffmpeg-8.0.1-essentials_build\ffmpeg-8.0.1-essentials_build\bin"
 
 TRANSCRIPTS_DIR = "data/transcripts"
 os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
 
-client = OpenAI()  # Ya usa OPENAI_API_KEY del .env
-
+# Cargar modelo UNA sola vez por ejecución
+print("🧠 Cargando modelo Whisper...")
+model = whisper.load_model("small")
 
 def get_transcript_path(video_id: str) -> str:
     return f"{TRANSCRIPTS_DIR}/{video_id}.txt"
@@ -29,7 +28,7 @@ def save_transcription(video_id: str, text: str):
 
 
 def transcribe_audio(video_id: str, audio_path: str) -> str:
-
+    
     # 1. Caché
     cached_path = is_transcript_cached(video_id)
     if cached_path:
@@ -37,18 +36,16 @@ def transcribe_audio(video_id: str, audio_path: str) -> str:
         with open(cached_path, "r", encoding="utf-8") as f:
             return f.read()
 
-    # 2. Transcribir con Whisper
-    print(f"🔊 Transcribiendo audio: {audio_path}")
+    if not os.path.exists(audio_path):
+        raise FileNotFoundError(f"Audio no encontrado: {audio_path}")
+    
+    # 2. Transcripción
+    print(f"🔊 Transcribiendo audio con Whisper: {audio_path}")
+    result = model.transcribe(audio_path, language="es")
 
-    with open(audio_path, "rb") as audio_file:
-        response = client.audio.transcriptions.create(
-            model="gpt-4o-mini-transcribe",
-            file=audio_file
-        )
+    text = result["text"]
 
-    text = response.text
-
-    # 3. Guardar en caché
+    # 3. Guardar caché
     save_transcription(video_id, text)
 
     return text
