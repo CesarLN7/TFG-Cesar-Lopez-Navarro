@@ -8,6 +8,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from dotenv import load_dotenv
 from yt_download.downloader import extract_video_id, download_audio, is_audio_cached
 from yt_transcript.get_transcript import transcribe_audio
+from analysis.preprocess_text import normalize_transcript
+
 
 
 # Cargar variables del .env
@@ -35,7 +37,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Detectar si el mensaje contiene un URL de YouTube
 YOUTUBE_REGEX = r"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/)([A-Za-z0-9_\-]{11})"
 
-# Comando /test
+# Comando /test para probar con un audio local
 async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Si el usuario no pasa ruta, usamos un archivo por defecto
@@ -52,28 +54,26 @@ async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("📝 Transcribiendo el audio...")
 
     try:
-        transcription = transcribe_audio('test_audio_1.mp3', audio_path)                                #(CUIDADO CON LOS ARGUMENTOS DE AQUÍ, SON DE PRUEBA!!!!!!)
+        test_id = os.path.splitext(os.path.basename(audio_path))[0]
+        raw_transcription = transcribe_audio(test_id, audio_path)                                   #(CUIDADO CON LOS ARGUMENTOS DE AQUÍ, SON DE PRUEBA!!!!!!)
+        
     except Exception as e:
         await update.message.reply_text(f"❌ Error transcribiendo audio:\n{e}")
         return
 
     await update.message.reply_text("✔ Audio transcrito con éxito.")
 
-    # ------------------------------------------
     # Guardar transcripción en data/transcripts/
-    # ------------------------------------------
     os.makedirs("data/transcripts", exist_ok=True)
 
     base_name = os.path.basename(audio_path)
     transcript_path = f"data/transcripts/{base_name}.txt"
 
     with open(transcript_path, "w", encoding="utf-8") as f:
-        f.write(transcription)
+        f.write(raw_transcription)
 
-    # ------------------------------------------
     # Enviar preview al usuario
-    # ------------------------------------------
-    preview = transcription[:1500] + ("..." if len(transcription) > 1500 else "")
+    preview = raw_transcription[:1500] + ("..." if len(raw_transcription) > 1500 else "")
 
     await update.message.reply_text(
         f"🗒️ **Preview de la transcripción:**\n\n{preview}",
@@ -82,6 +82,26 @@ async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         f"📁 Transcripción guardada en:\n{transcript_path}"
+    )
+    
+    await update.message.reply_text("🧹 Normalizando transcripción...")
+
+    try:
+        normalized_text = normalize_transcript(raw_transcription)
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error normalizando texto:\n{e}")
+        return
+    
+    normalized_path = f"data/transcripts/{base_name}_normalized.txt"
+
+    with open(normalized_path, "w", encoding="utf-8") as f:
+        f.write(normalized_text)
+    
+    preview = normalized_text[:1500] + ("..." if len(normalized_text) > 1500 else "")
+
+    await update.message.reply_text(
+        f"🧠 **Transcripción normalizada (preview):**\n\n{preview}",
+        parse_mode="Markdown"
     )
 
 # Manejar mensajes generales
