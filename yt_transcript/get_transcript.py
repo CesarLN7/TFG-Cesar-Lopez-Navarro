@@ -10,7 +10,7 @@ os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
 
 # Cargar modelo UNA sola vez por ejecución
 print("🧠 Cargando modelo Whisper...")
-model = whisper.load_model("small")
+model = whisper.load_model("base")
 
 def get_transcript_path(video_id: str) -> str:
     return f"{TRANSCRIPTS_DIR}/{video_id}.txt"
@@ -41,7 +41,7 @@ def transcribe_audio(video_id: str, audio_path: str) -> str:
     
     # 2. Transcripción
     print(f"🔊 Transcribiendo audio con Whisper: {audio_path}")
-    result = model.transcribe(audio_path, language="es")
+    result = model.transcribe(audio_path, language="es", task="transcribe", fp16=False, verbose=False)
 
     text = result["text"]
 
