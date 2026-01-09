@@ -63,25 +63,12 @@ async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("✔ Audio transcrito con éxito.")
 
-    # Guardar transcripción en data/transcripts/
-    os.makedirs("data/transcripts", exist_ok=True)
-
-    base_name = os.path.basename(audio_path)
-    transcript_path = f"data/transcripts/{base_name}.txt"
-
-    with open(transcript_path, "w", encoding="utf-8") as f:
-        f.write(raw_transcription)
-
     # Enviar preview al usuario
     preview = raw_transcription[:1500] + ("..." if len(raw_transcription) > 1500 else "")
 
     await update.message.reply_text(
         f"🗒️ **Preview de la transcripción:**\n\n{preview}",
         parse_mode="Markdown"
-    )
-
-    await update.message.reply_text(
-        f"📁 Transcripción guardada en:\n{transcript_path}"
     )
     
     await update.message.reply_text("🧹 Normalizando transcripción...")
@@ -92,7 +79,7 @@ async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"❌ Error normalizando texto:\n{e}")
         return
     
-    normalized_path = f"data/transcripts/{base_name}_normalized.txt"
+    normalized_path = f"data/transcripts/{test_id}_normalized.txt"
 
     with open(normalized_path, "w", encoding="utf-8") as f:
         f.write(normalized_text)
