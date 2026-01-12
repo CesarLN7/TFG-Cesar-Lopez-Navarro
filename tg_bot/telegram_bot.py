@@ -1,15 +1,15 @@
 # Este archivo contiene la lógica principal del bot de Telegram.
 
 import os
-import re
 import shutil
+import json
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
 from yt_download.downloader import extract_video_id, download_audio, is_audio_cached
 from yt_transcript.get_transcript import transcribe_audio
 from analysis.preprocess_text import normalize_transcript
-
+from analysis.classify_text import classify_transcript
 
 
 # Cargar variables del .env
@@ -90,6 +90,21 @@ async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🧠 **Transcripción normalizada (preview):**\n\n{preview}",
         parse_mode="Markdown"
     )
+    
+    await update.message.reply_text("🧠 Clasificando contenido del vídeo...")
+
+    try:
+        classification = classify_transcript(test_id, normalized_text)
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error clasificando texto:\n{e}")
+        return
+
+    pretty_json = json.dumps(classification, ensure_ascii=False, indent=2)
+
+    await update.message.reply_text(
+        f"📊 **Resultado de clasificación:**\n\n```json\n{pretty_json}\n```",
+        parse_mode="Markdown"
+    )
 
 # Manejar mensajes generales
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -157,6 +172,7 @@ def clean_cache():
 
     audio_cache = "data/audios"
     transcript_cache = "data/transcripts"
+    classification_cache = "data/classification"
 
     # Borrar audios
     if os.path.exists(audio_cache):
@@ -173,6 +189,14 @@ def clean_cache():
         print("✔ Caché de transcripciones eliminada.")
     else:
         print("No había caché de transcripciones.")
+        
+    # Borrar clasificaciones
+    if os.path.exists(classification_cache):
+        print("🧹 Borrando caché de clasificación…")
+        shutil.rmtree(classification_cache)
+        print("✔ Caché de clasificación eliminada.")
+    else:
+        print("No había caché de clasificación.")
 
 
 # -----------------------------------------

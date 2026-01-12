@@ -15,25 +15,25 @@ print("🧠 Cargando modelo Whisper...")
 model = whisper.load_model("base")
 
 # Esta función obtiene la ruta del archivo de transcripción en caché
-def get_transcript_path(video_id: str) -> str:
+def get_transcription_path(video_id: str) -> str:
     return f"{TRANSCRIPTS_DIR}/{video_id}.txt"
 
 # Esta función verifica si la transcripción ya está en caché
-def is_transcript_cached(video_id: str) -> str | None:
-    path = get_transcript_path(video_id)
+def is_transcription_cached(video_id: str) -> str | None:
+    path = get_transcription_path(video_id)
     return path if os.path.exists(path) else None
 
 # Esta función guarda la transcripción en caché
 def save_transcription(video_id: str, text: str):
-    path = get_transcript_path(video_id)
+    path = get_transcription_path(video_id)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 
-# Función principal para transcribir audio
+# Esta función transcribe el audio usando Whisper y maneja la caché
 def transcribe_audio(video_id: str, audio_path: str) -> str:
     
     # 1. Caché
-    cached_path = is_transcript_cached(video_id)
+    cached_path = is_transcription_cached(video_id)
     if cached_path:
         print("📦 Transcripción encontrada en caché.")
         with open(cached_path, "r", encoding="utf-8") as f:
