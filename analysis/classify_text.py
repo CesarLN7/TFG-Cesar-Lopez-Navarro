@@ -8,15 +8,11 @@ from dotenv import load_dotenv
 # Cargar variables de entorno
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
-
 if not API_KEY:
     raise RuntimeError("❌ GEMINI_API_KEY no encontrado en .env")
 
 genai.configure(api_key=API_KEY)
-
-# Cargar modelo UNA sola vez por ejecución
-print("🧠 Cargando modelo Gemini...")
-model = genai.GenerativeModel("gemini-1.5-pro")
+model = genai.GenerativeModel("models/gemini-2.0-flash-lite")
 
 # Directorio para guardar clasificaciones en caché
 CLASSIFICATION_DIR = "data/classification"
@@ -50,7 +46,7 @@ def classify_transcript(video_id: str, normalized_text: str) -> dict:
         return cached_result
 
     # 2. Clasificación mediante Gemini
-    prompt = f"""
+    prompt = """
 Eres un sistema experto en análisis de contenido audiovisual.
 
 Vas a analizar la transcripción normalizada de un vídeo y debes responder
@@ -83,20 +79,20 @@ Reglas IMPORTANTES:
 
 Formato EXACTO de salida:
 
-{{
-  "is_travel": true | false,
+{
+  "is_travel": bool,
   "travel_confidence": float,
-  "distribution": {{
+  "distribution": {
     "gastronomy": float,
     "culture": float,
     "entertainment": float,
     "others": float
-  }}
-}}
+  }
+}
 
 Transcripción:
 \"\"\"
-{normalized_text}
+""" + normalized_text + """
 \"\"\"
 """
 
@@ -107,7 +103,16 @@ Transcripción:
         result = json.loads(response.text)
     except json.JSONDecodeError:
         raise ValueError("❌ La respuesta del modelo no es JSON válido")
-    
+
+    if result.get("is_travel"):
+        distribution = result.get("distribution", {})
+        total = sum(distribution.values())
+
+        if not abs(total - 1.0) < 0.01:
+            raise ValueError(
+                f"❌ Distribución no suma 1 (suma={total})"
+            )
+
     # 4. Guardar caché
     save_classification(video_id, result)
 
