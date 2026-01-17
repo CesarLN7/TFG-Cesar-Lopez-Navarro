@@ -90,19 +90,40 @@ Formato EXACTO de salida:
   }
 }
 
+
+EJMPLO DE RESPUESTA VÁLIDA:
+
+{
+  "is_travel": true,
+  "travel_confidence": 0.85,
+  "distribution": {
+    "gastronomy": 0.3,
+    "culture": 0.4,
+    "entertainment": 0.2,
+    "others": 0.1
+  }
+}
+
 Transcripción:
 \"\"\"
 """ + normalized_text + """
 \"\"\"
 """
 
-    # 3. Llamada al modelo
+    # 3. Llamar al modelo
     response = model.generate_content(prompt)
 
+    raw = response.text.strip()
+
+    # 4. Limpiar salida
+    if raw.startswith("```"):
+        raw = raw.replace("```json", "").replace("```", "").strip()
+
     try:
-        result = json.loads(response.text)
+        result = json.loads(raw)
     except json.JSONDecodeError:
-        raise ValueError("❌ La respuesta del modelo no es JSON válido")
+        raise ValueError(f"❌ La respuesta del modelo no es JSON válido:\n{raw}")
+
 
     if result.get("is_travel"):
         distribution = result.get("distribution", {})
@@ -113,7 +134,7 @@ Transcripción:
                 f"❌ Distribución no suma 1 (suma={total})"
             )
 
-    # 4. Guardar caché
+    # 5. Guardar caché
     save_classification(video_id, result)
 
     return result
