@@ -49,31 +49,52 @@ def classify_transcript(video_id: str, normalized_text: str) -> dict:
     prompt = """
 Eres un sistema experto en análisis de contenido audiovisual.
 
-Vas a analizar la transcripción normalizada de un vídeo y debes responder
+Tu tarea principal es determinar si un vídeo puede considerarse
+un VÍDEO DE VIAJES.
+
+Definición CLAVE (muy importante):
+
+Un vídeo SOLO se considera de viajes si:
+- Existe desplazamiento físico a un lugar distinto al entorno habitual del creador, O
+- Se narra una experiencia turística (visita a ciudades, países, regiones,
+  rutas, alojamientos, transporte, planificación o vivencias durante un viaje).
+
+NO se considera un vídeo de viajes si:
+- Habla únicamente de comida, cocina o gastronomía SIN contexto de desplazamiento.
+- Trata cultura, historia o costumbres SIN relación con una experiencia turística.
+- Es entretenimiento, opinión o divulgación desde un entorno local o doméstico.
+
+La gastronomía, cultura y entretenimiento SOLO cuentan como parte de un vídeo de viajes
+si están claramente integrados dentro de una experiencia de viaje.
+
+Vas a analizar la transcripción normalizada del vídeo en cuestión y debes responder
 EXCLUSIVAMENTE en formato JSON válido.
 
 Tareas:
 
-1. Determinar si el vídeo es de viajes.
+1. Determinar si el vídeo es de viajes según la definición anterior.
 2. Si lo es, repartir el contenido del vídeo en los siguientes ejes:
    - Gastronomía
    - Cultura
    - Entretenimiento
    - Otros
 
-Definiciones:
-- Gastronomía: comida típica, platos, restaurantes, bebidas locales y experiencias culinarias.
+Definiciones de ejes (solo aplican si is_travel = true):
+- Gastronomía: comida típica, platos, restaurantes, bebidas locales y experiencias culinarias vividas DURANTE un viaje o en un destino visitado.
 - Cultura: historia, tradiciones, costumbres, patrimonio, contexto social del país,
   así como información práctica integrada en la experiencia del viaje
   (precios, moneda, coste de vida, transporte, desplazamientos, alojamiento y logística local).
 - Entretenimiento: anécdotas personales, vivencias, humor y experiencias narrativas del viaje.
-- Otros: contenido no clasificable claramente en las categorías anteriores
+- Otros: contenido no clasificable claramente en las categorías anteriores, dentro del contexto del viaje.
   (introducciones genéricas, despedidas, reflexiones no relacionadas con el viaje,
   patrocinio explícito, contenido off-topic).
 
 Reglas IMPORTANTES:
 - Usa valores entre 0 y 1.
-- Si NO es un vídeo de viajes, todos los valores deben ser 0.
+- Si NO es un vídeo de viajes:
+  - is_travel = false
+  - travel_confidence = 0
+  - todos los valores de distribution deben ser 0
 - Si is_travel = true, la suma de los cuatro valores debe ser exactamente 1.
 - No añadas explicaciones ni texto fuera del JSON.
 

@@ -10,6 +10,7 @@ from yt_download.downloader import extract_video_id, download_audio, is_audio_ca
 from yt_transcript.get_transcript import transcribe_audio
 from analysis.preprocess_text import normalize_transcript
 from analysis.classify_text import classify_transcript
+from analysis.generate_graph import generate_graph
 
 
 # Cargar variables del .env
@@ -105,6 +106,11 @@ async def test_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📊 **Resultado de clasificación:**\n\n```json\n{pretty_json}\n```",
         parse_mode="Markdown"
     )
+    
+    graph_path = generate_graph(test_id, classification)
+
+    with open(graph_path, "rb") as img:
+        await update.message.reply_photo(photo=img)
 
 # Manejar mensajes generales
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -173,6 +179,7 @@ def clean_cache():
     audio_cache = "data/audios"
     transcript_cache = "data/transcripts"
     classification_cache = "data/classification"
+    graph_cache = "data/graphs"
 
     # Borrar audios
     if os.path.exists(audio_cache):
@@ -197,6 +204,14 @@ def clean_cache():
         print("✔ Caché de clasificación eliminada.")
     else:
         print("No había caché de clasificación.")
+        
+    # Borrar gráficos
+    if os.path.exists(graph_cache):
+        print("🧹 Borrando caché de gráficos…")
+        shutil.rmtree(graph_cache)
+        print("✔ Caché de gráficos eliminada.")
+    else:
+        print("No había caché de gráficos.")
 
 
 # -----------------------------------------
