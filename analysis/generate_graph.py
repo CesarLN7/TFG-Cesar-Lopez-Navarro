@@ -89,7 +89,7 @@ def generate_graph(video_id: str, classification: Dict) -> str:
     ax_dist.set_ylabel("Porcentaje (%)")
     ax_dist.set_title("Distribución del contenido")
 
-    # Etiquetas encima de las barras
+    # 3.3 Etiquetas encima de las barras
     for bar in bars:
         height = bar.get_height()
         ax_dist.text(

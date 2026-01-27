@@ -6,7 +6,6 @@ import json
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from dotenv import load_dotenv
-from yt_download.downloader import extract_video_id, download_audio, is_audio_cached
 from yt_transcript.get_transcript import transcribe_audio
 from analysis.preprocess_text import normalize_transcript
 from analysis.classify_text import classify_transcript
