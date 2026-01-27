@@ -8,32 +8,31 @@ os.environ["PATH"] += os.pathsep + r"C:\Users\César\OneDrive - Universidad Carl
 
 # Directorio para guardar transcripciones en caché
 TRANSCRIPTS_DIR = "data/transcripts"
-os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
 
 # Cargar modelo UNA sola vez por ejecución
 print("🧠 Cargando modelo Whisper...")
 model = whisper.load_model("base")
 
 # Esta función obtiene la ruta del archivo de transcripción en caché
-def get_transcription_path(video_id: str) -> str:
-    return f"{TRANSCRIPTS_DIR}/{video_id}.txt"
+def get_transcription_path(analysis_id: str) -> str:
+    return f"{TRANSCRIPTS_DIR}/{analysis_id}.txt"
 
 # Esta función verifica si la transcripción ya está en caché
-def is_transcription_cached(video_id: str) -> str | None:
-    path = get_transcription_path(video_id)
+def is_transcription_cached(analysis_id: str) -> str | None:
+    path = get_transcription_path(analysis_id)
     return path if os.path.exists(path) else None
 
 # Esta función guarda la transcripción en caché
-def save_transcription(video_id: str, text: str):
-    path = get_transcription_path(video_id)
+def save_transcription(analysis_id: str, text: str):
+    path = get_transcription_path(analysis_id)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 
 # Esta función transcribe el audio usando Whisper y maneja la caché
-def transcribe_audio(video_id: str, audio_path: str) -> str:
+def transcribe_audio(analysis_id: str, audio_path: str) -> str:
     
     # 1. Caché
-    cached_path = is_transcription_cached(video_id)
+    cached_path = is_transcription_cached(analysis_id)
     if cached_path:
         print("📦 Transcripción encontrada en caché.")
         with open(cached_path, "r", encoding="utf-8") as f:
@@ -49,6 +48,6 @@ def transcribe_audio(video_id: str, audio_path: str) -> str:
     text = result["text"]
 
     # 3. Guardar caché
-    save_transcription(video_id, text)
+    save_transcription(analysis_id, text)
 
     return text

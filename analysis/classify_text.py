@@ -16,31 +16,30 @@ model = genai.GenerativeModel("models/gemini-2.0-flash-lite")
 
 # Directorio para guardar clasificaciones en caché
 CLASSIFICATION_DIR = "data/classification"
-os.makedirs(CLASSIFICATION_DIR, exist_ok=True)
 
 # Esta función obtiene la ruta del archivo de clasificación en caché
-def get_classification_path(video_id: str) -> str:
-    return f"{CLASSIFICATION_DIR}/{video_id}_classification.json"
+def get_classification_path(analysis_id: str) -> str:
+    return f"{CLASSIFICATION_DIR}/{analysis_id}_classification.json"
 
 # Esta función verifica si la clasificación ya está en caché
-def is_classification_cached(video_id: str) -> dict | None:
-    path = get_classification_path(video_id)
+def is_classification_cached(analysis_id: str) -> dict | None:
+    path = get_classification_path(analysis_id)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     return None
 
 # Esta función guarda la clasificación en caché
-def save_classification(video_id: str, data: dict):
-    path = get_classification_path(video_id)
+def save_classification(analysis_id: str, data: dict):
+    path = get_classification_path(analysis_id)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 # Esta función envía un prompt al modelo de Gemini para determinar si el vídeo es de viajes y su distribución temática mediante un JSON.
-def classify_transcript(video_id: str, normalized_text: str) -> dict:
+def classify_transcript(analysis_id: str, normalized_text: str) -> dict:
     
     # 1. Caché
-    cached_result = is_classification_cached(video_id)
+    cached_result = is_classification_cached(analysis_id)
     if cached_result:
         print("📦 Clasificación encontrada en caché.")
         return cached_result
@@ -156,6 +155,6 @@ Transcripción:
             )
 
     # 5. Guardar caché
-    save_classification(video_id, result)
+    save_classification(analysis_id, result)
 
     return result

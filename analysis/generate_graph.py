@@ -6,20 +6,19 @@ import matplotlib.pyplot as plt
 
 # Directorio para guardar gráficos en caché
 GRAPH_DIR = "data/graphs"
-os.makedirs(GRAPH_DIR, exist_ok=True)
 
 # Esta función obtiene la ruta del archivo del gráfico en caché
-def get_graph_path(video_id: str) -> str:
-    return f"{GRAPH_DIR}/{video_id}_analysis.png"
+def get_graph_path(analysis_id: str) -> str:
+    return f"{GRAPH_DIR}/{analysis_id}_analysis.png"
 
 # Esta función verifica si el gráfico ya está en caché
-def is_graph_cached(video_id: str) -> str | None:
-    path = get_graph_path(video_id)
+def is_graph_cached(analysis_id: str) -> str | None:
+    path = get_graph_path(analysis_id)
     return path if os.path.exists(path) else None
 
 # Esta función guarda la figura del gráfico en disco
-def save_graph(fig, video_id: str) -> str:
-    path = get_graph_path(video_id)
+def save_graph(fig, analysis_id: str) -> str:
+    path = get_graph_path(analysis_id)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
@@ -33,10 +32,10 @@ def confidence_color(confidence: float) -> str:
     return "green"
 
 # Esta función genera (o recupera de caché) la imagen resumen del análisis
-def generate_graph(video_id: str, classification: Dict) -> str:
+def generate_graph(analysis_id: str, classification: Dict) -> str:
 
     # 1. Caché
-    cached = is_graph_cached(video_id)
+    cached = is_graph_cached(analysis_id)
     if cached:
         print("📦 Gráfico encontrado en caché.")
         return cached
@@ -104,7 +103,7 @@ def generate_graph(video_id: str, classification: Dict) -> str:
     plt.tight_layout()
 
     # 4. Guardar gráfico
-    path = save_graph(fig, video_id)
+    path = save_graph(fig, analysis_id)
 
     print("📊 Gráfico generado y guardado.")
     return path
