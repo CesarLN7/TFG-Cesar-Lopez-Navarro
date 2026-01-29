@@ -10,3 +10,9 @@
 
 3. Ejecución del bot:
    python main.py
+
+- Para el completo funcionamiento de la herramienta es necesaria la instalación previa de la versión
+   más reciente que sea posible programa ffmpeg en el dispositivo en el que va a ser ejecutada.
+   
+- Así mismo, tambien se requiere la actualización de la línea número siete del archivo con nombre
+   get_transcript.py con la ruta en la que dicho programa se encuentre en el dispositivo.
