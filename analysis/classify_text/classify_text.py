@@ -2,7 +2,7 @@
 
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
@@ -11,8 +11,8 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise RuntimeError("❌ GEMINI_API_KEY no encontrado en .env")
 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("models/gemini-2.0-flash-lite")
+client = genai.Client(api_key=API_KEY)
+MODEL_NAME = "gemini-2.0-flash"
 
 # Directorio para guardar clasificaciones en caché
 CLASSIFICATION_DIR = "data/classification"
@@ -131,7 +131,10 @@ Transcripción:
 """
 
     # 3. Llamar al modelo
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=prompt
+    )
 
     raw = response.text.strip()
 

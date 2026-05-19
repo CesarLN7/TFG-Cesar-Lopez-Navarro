@@ -9,5 +9,5 @@ numpy>=1.26.0
 
 openai-whisper
 torch
-google-generativeai
+google.genai
 # ffmpeg-python==0.2.0
