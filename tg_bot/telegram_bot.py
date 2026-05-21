@@ -8,8 +8,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from dotenv import load_dotenv
 from yt_transcript.get_transcript import transcribe_audio
 from analysis.preprocess_text import normalize_transcript
-from analysis.classify_text.classify_text import classify_transcript
-from analysis.classify_text.get_gemini_model import get_gemini_models
+from analysis.classify_text import classify_transcript
 from analysis.generate_graph import generate_graph
 
 
@@ -416,8 +415,6 @@ def clean_cache():
 
 def run_bot():
     print("Iniciando bot de Telegram...")
-    
-    get_gemini_models()
     
     ensure_directories()
 

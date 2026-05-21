@@ -12,7 +12,7 @@ if not API_KEY:
     raise RuntimeError("❌ GEMINI_API_KEY no encontrado en .env")
 
 client = genai.Client(api_key=API_KEY)
-MODEL_NAME = "gemini-2.0-flash"
+MODEL_NAME = "gemini-flash-lite-latest"
 
 # Directorio para guardar clasificaciones en caché
 CLASSIFICATION_DIR = "data/classification"
